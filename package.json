@@ -1,0 +1,16 @@
+{
+  "name": "scheduling-system",
+  "scripts": {
+    "install": "cd web && yarn && cd ../api && yarn",
+    "preview": "cd web && yarn preview & cd api && yarn start",
+    "dev": "cd web && yarn dev & cd api && yarn start:dev",
+    "build": "cd web && export VITE_API_BASE_URL=/api && yarn build && mv dist web && mv -f web ../api && cd ../api && yarn build",
+    "start": "cd api && yarn start:prod"
+  },
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "node": "17.x",
+    "yarn": "1.x"
+  }
+}
