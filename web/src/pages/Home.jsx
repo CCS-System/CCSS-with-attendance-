@@ -32,7 +32,7 @@ const Home = () => {
 
                             <div class="text-center text-md-left mt-5">
                                 <a onClick={() => { navigate("/login") }} class="btn btn-primary btn-icon">
-                                    <span class="btn-inner--text">Get started</span>
+                                    <span class="btn-inner--text" style = {{color:'white'}}>Get started</span>
                                     <span class="btn-inner--icon"><i data-feather="chevron-right"></i></span>
                                 </a>
                                 {/* <a href="https://webpixels.io/illustrations" class="btn btn-neutral btn-icon d-none d-lg-inline-block">See Illustrations</a> */}
