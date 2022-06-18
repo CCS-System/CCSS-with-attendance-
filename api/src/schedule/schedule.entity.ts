@@ -37,14 +37,23 @@ export class Schedule {
   @Column()
   slots: string;
 
-  @ManyToOne(() => Section, section => section.schedules, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  section: Section;
+  @Column({ nullable: true })
+  date?: string;
 
-  @ManyToOne(() => Teacher, teacher => teacher.schedules, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @Column({ default: false })
+  reserved?: boolean;
+
+  @Column({ default: false })
+  makeup?: boolean;
+
+  @ManyToOne(() => Section, section => section.schedules, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  section?: Section;
+
+  @ManyToOne(() => Teacher, teacher => teacher.schedules, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   teacher: Teacher;
 
-  @ManyToOne(() => Classroom, classroom => classroom.schedules, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  classroom: Classroom;
+  @ManyToOne(() => Classroom, classroom => classroom.schedules, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  classroom?: Classroom;
 
   @ManyToMany(() => Student, student => student.schedules, { cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' }) @JoinTable({ name: "enrollment" })
   students?: Student[];

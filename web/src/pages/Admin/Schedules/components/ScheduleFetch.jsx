@@ -9,13 +9,30 @@ import { useNavigate } from "react-router-dom";
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import { Select } from "baseui/select";
 import { Notification } from 'baseui/notification';
+import CreateReserved from "./CreateReserved";
 
 const notificationOverrides = {
     Body: { style: { width: 'auto', margin: "1rem .5rem" } },
 };
 
-const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
+const ordinalSuffix = (i) => {
+    const j = i % 10;
+    const k = i % 100;
+    if (j == 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j == 2 && k != 12) {
+        return i + "nd";
+    }
+    if (j == 3 && k != 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
+const Page = ({ by, id, removable, addable, makeup, reserved, actions, info, title: t, teacher: initialTeacher }) => {
     const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(false);
     const view = by.toLowerCase();
     let func = theAPI.allBySection;
     switch (view) {
@@ -33,9 +50,9 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
     const title = (schedule) => {
         switch (view) {
             case "teacher":
-                return `${schedule.teacher.user.fullname} [${schedule.teacher.department.id}]`;;
+                return `${schedule.teacher.user.fullname}`;
             case "section":
-                return `${schedule.section.department.id} ${schedule.section.name} [${schedule.section.year} batch]`;
+                return `${ordinalSuffix(schedule.section.year)} year ${schedule.section.department.id} ${schedule.section.name} Students`;
             case "classroom":
                 return `${schedule.classroom.name} [${schedule.classroom.type}]`;
         }
@@ -44,6 +61,7 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
     const { request, loading, error } = useAPI(func, { onComplete: (e) => { setAllSchedules(e.map((s) => ({ ...s, slots: s.slots.split(",").map((v) => parseInt(v)) }))); } });
     const { loading: deleteLoading, request: deleteRequest } = useAPI(theAPI.delete, { onComplete: () => { setSchedules([]); setAllSchedules([]); setFilters({}); request(id); }, errorMessage: "Could not delete!", successMessage: "deleted!" });
     const { loading: addLoading, request: addRequest } = useAPI(theAPI.create, { onComplete: () => { setSchedules([]); setAllSchedules([]); setFilters({}); request(id); }, errorMessage: "Could not add!", successMessage: "added!" });
+    const { loading: reservedLoading, request: reservedRequest } = useAPI(theAPI.createReserved, { onComplete: () => { setIsOpen(false); setSchedules([]); setAllSchedules([]); setFilters({}); request(id); }, errorMessage: "Could not add!", successMessage: "added!" });
     useEffect(() => { request(id); }, [])
 
     const [allSchedules, setAllSchedules] = useState([]);
@@ -61,7 +79,8 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
     useEffect(() => {
         filterSchedules();
     }, [filters]);
-    return <Content title={t || "Schedule"} isLoading={loading || deleteLoading} error={error}>
+    return <Content title={t || "Schedule"} isLoading={loading || deleteLoading} error={error} actions={reserved ? [{ name: "Add Reserved Time", handler: () => { setIsOpen(true) } }] : undefined}>
+        <CreateReserved year={filters.year} semester={filters.semester} teacher={initialTeacher} isOpen={isOpen} setIsOpen={setIsOpen} isLoading={reservedLoading} onSubmit={(e) => { if (reservedRequest) reservedRequest(e) }} />
         <FlexGrid
             flexGridColumnCount={2}
             flexGridColumnGap="scale800"
@@ -69,7 +88,7 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
             justifyItems="space-between"
         >
             <FlexGridItem>
-                <FormControl label="Year" >
+                <FormControl label="Academic Year" >
                     <Select
                         options={Object.entries(Object.fromEntries(allSchedules.map((schedule) => [schedule.year, true]))).map(([key]) => ({ id: key, label: key }))}
                         onChange={({ value: year }) => { setFilters({ ...filters, year }) }}
@@ -79,7 +98,7 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
             </FlexGridItem>
 
             <FlexGridItem>
-                <FormControl label="Semester" >
+                <FormControl label="Academic Semester" >
                     <Select
                         options={Object.entries(Object.fromEntries(allSchedules.map((schedule) => [schedule.semester, true]))).map(([key]) => ({ id: key, label: key }))}
                         onChange={({ value: semester }) => { setFilters({ ...filters, semester }) }}
@@ -93,9 +112,10 @@ const Page = ({ by, id, removable, addable, actions, info, title: t }) => {
         >
             {info}
         </Notification>}
-        {schedules.length > 0 ? <ScheduleDisplay year={schedules[0].year} semester={schedules[0].semester} title={`${schedules[0].year} Semester  ${schedules[0].semester} Schedule for ${title(schedules[0])}`} schedules={schedules} deleteRequest={removable && deleteRequest} addRequest={addable && addRequest} actions={actions} isLoading={addLoading} /> : <Notification
-            overrides={notificationOverrides}
-        >
+        {schedules.length > 0 ? <>
+            <ScheduleDisplay by={by} department={[{ id: schedules[0].section.department.id, label: schedules[0].section.department.name }]} section={[{ id: schedules[0].section.id, label: schedules[0].section.name }]} teacher={[{ id: schedules[0].teacher.id, label: schedules[0].teacher.user.fullname }]} year={schedules[0].year} semester={schedules[0].semester} title={`${schedules[0].year} AY, Semester  ${schedules[0].semester} - Schedule for ${title(schedules[0])}`} schedules={schedules} deleteRequest={removable && deleteRequest} addRequest={addable && addRequest} makeupRequest={makeup && addRequest} actions={actions} isLoading={addLoading} /></> : <Notification
+                overrides={notificationOverrides}
+            >
             No schedule avaliable for the selected time period (make sure to select a year and semester)
         </Notification>}
     </Content>

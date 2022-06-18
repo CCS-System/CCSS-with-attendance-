@@ -7,6 +7,7 @@ import Content from "../../../../components/Content";
 import useAPI from "../../../../hooks/useAPI";
 import theAPI from "../../../../api/schedules";
 import attendanceAPI from "../../../../api/attendance";
+import studentsAPI from "../../../../api/students"
 import { Notification } from 'baseui/notification';
 import { Tag } from "baseui/tag";
 const notificationOverrides = {
@@ -29,26 +30,28 @@ const Page = ({ id, actions }) => {
         }
         setAttendance(lookup);
     }
-    const { loading: l1, request: r1, error: e1, data } = useAPI(theAPI.getById);
-    const { loading: l2, request: r2, error: e2, } = useAPI(attendanceAPI.allBySchedule, { onComplete: organizeByDate });
+    const { loading: l1, request: r1, error: e1,data } = useAPI(theAPI.getById, { onComplete: (d) => { getStudents(d.section.id); } });
+    const { loading: l2, request: r2, error: e2 } = useAPI(attendanceAPI.allBySchedule, { onComplete: organizeByDate });
+    const { loading: l3, request: getStudents, data:students } = useAPI(studentsAPI.allBySection, { errorMessage: "Could not fetch students!",  });
     useEffect(() => {
         r1(id);
         r2(id);
-    }, [])
+    }, []);
+
+
 
     const [attendance, setAttendance] = useState({});
     const [selectedDate, setSelectedDate] = useState("");
-    const loading = l1 || l2;
+    const loading = l1 || l2 || l3;
     const error = e1 || e2;
-    const toRow = (data) => {
+    const toRow = (students) => {
         const rows = [];
-        if (data && data.students && data.students.length) {
-            const students = data.students;
+        if (students && students.length) {
             students.forEach(({ attendance, studentId, fullname, }) => {
-                const absentDays = attendance.filter(({ absent }) => absent).length;
-                const presentDays = attendance.filter(({ absent }) => !absent).length;
+                const absentDays = attendance.filter(({ absent, schedule }) => absent && schedule.id === id).length;
+                const presentDays = attendance.filter(({ absent, schedule }) => !absent && schedule.id === id).length;
                 const percentage = Math.round((presentDays / (absentDays + presentDays)) * 100);
-                rows.push([studentId, fullname, absentDays, presentDays, <Tag closeable={false} kind={percentage >= 75 ? "positive" : "negative"}>{percentage} %</Tag>]);
+                rows.push([studentId, fullname, absentDays, presentDays, <Tag closeable={false} kind={percentage >= 75 ? "positive" : "negative"}>{isNaN(percentage) ? "0 %" : `${percentage} %`}</Tag>]);
             })
         }
         return rows;
@@ -65,15 +68,16 @@ const Page = ({ id, actions }) => {
     }
     return <Content error={error} isLoading={loading} title={data && `Attendance Details : ${data.name}` || "Attendance Details"} actions={actions}>
         {data && <>
-            <FlexGrid
+            {Object.keys(attendance).length > 0 ? <FlexGrid
                 flexGridColumnCount={2}
                 flexGridColumnGap="1px"
                 flexGridRowGap="1px"
 
             >
                 <FlexGridItem>
+
                     <StatefulCalendar
-                        includeDates={Object.keys(attendance).map((e) => new Date(e))}
+                        includeDates={Object.keys(attendance).length > 0 ? Object.keys(attendance).map((e) => new Date(e)) : undefined}
                         onChange={({ date }) => setSelectedDate(date.toISOString())}
                     />
                 </FlexGridItem>
@@ -84,10 +88,16 @@ const Page = ({ id, actions }) => {
                         Please select a date from the calendar to view attendance sheet
                     </Notification>}
                 </FlexGridItem>
-            </FlexGrid>
+            </FlexGrid> :
+                <Notification
+
+                    overrides={notificationOverrides}
+                >
+                    No attendance currently avaliable
+                </Notification>}
 
 
-            <PaginatedTable error={error} isLoading={loading} title="Students" columns={["Student ID", "Full name", "Days Absent", "Days Present", "Overall Attendance"]} data={toRow(data)} />
+           <PaginatedTable error={error} isLoading={loading} title="Students" columns={["Student ID", "Full name", "Days Absent", "Days Present", "Overall Attendance"]} data={toRow(students)} />
         </>}
     </Content>
 

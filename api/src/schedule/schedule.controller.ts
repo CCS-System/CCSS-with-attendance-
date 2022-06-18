@@ -39,6 +39,16 @@ export class ScheduleController {
     }
   }
 
+  @Get("attendance/:id")
+  async findAllByIdAttendance(@Param('id') id: string): Promise<Schedule> {
+    try {
+      return await this.scheduleService.findByIdAttendance(id);
+    } catch (error) {
+      console.log(error);
+      throw new NotFoundException(`Cannot find schedule`);
+    }
+  }
+
   @Get("section/:id")
   async findAllBySection(@Param('id') id: string): Promise<Schedule[]> {
     try {
@@ -67,14 +77,6 @@ export class ScheduleController {
     }
   }
 
-  @Get(':scheduleId')
-  async findScheduleByStudentId(@Param('scheduleId') scheduleId: string): Promise<Schedule> {
-    try {
-      return await this.scheduleService.findById(scheduleId);
-    } catch (error) {
-      throw new NotFoundException(`Cannot find schedule #${scheduleId}`);
-    }
-  }
 
   @Post()
   async CreateSchedule(
@@ -87,6 +89,24 @@ export class ScheduleController {
       const students = await this.studentService.findAllBySection(section.id);
       if (section && teacher && classroom) {
         return await this.scheduleService.create({ ...payload, section, teacher, classroom, students })
+      }
+      throw new NotFoundException("Entity not found");
+
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  @Post("reserved")
+  async CreateReservedSchedule(
+    @Body() payload: CreateScheduleDto,
+  ) {
+    try {
+
+      const teacher = await this.teacherService.findById(payload.teacher);
+
+      if (teacher) {
+        return await this.scheduleService.create({ name: payload.name, year: payload.year, semester: payload.semester, slots: payload.slots, weekday: payload.weekday, reserved: true, teacher })
       }
       throw new NotFoundException("Entity not found");
 
@@ -116,6 +136,19 @@ export class ScheduleController {
 
 
       }
+    }
+    catch (error) {
+      console.log(error)
+      throw new BadRequestException('Failed to add request', error);
+    }
+  }
+
+  @Post("generate")
+  async GenerateSchedule(
+    @Body() payload: any,
+  ) {
+    try {
+      return this.scheduleService.generate(payload);
     }
     catch (error) {
       console.log(error)

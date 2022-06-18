@@ -1,5 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository} from '@nestjs/typeorm';
+import {Like} from "typeorm";
 import { Department } from './department.entity';
 import { DepartmentRepository } from './department.repository';
 
@@ -43,6 +44,20 @@ export class DepartmentService implements OnApplicationBootstrap {
     return await this.departmentRepository.findOne({
       where: { id }, relations: ["sections"]
     });
+  }
+
+  async findLikeOrCreate(id: string): Promise<Department> {
+    const result = await this.departmentRepository.findOne({
+      where: { name: Like(`%${id}%`) }, relations: ["sections"]
+    });
+    if (result) {
+      return result;
+    }
+    else {
+
+      return await this.create({ id, name: id });
+
+    }
   }
 
   async create(department: DepartmentPayload): Promise<Department> {

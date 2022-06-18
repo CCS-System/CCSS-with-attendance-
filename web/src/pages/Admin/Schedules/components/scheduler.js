@@ -4,7 +4,7 @@ export const OR = (arr1, arr2, arr3) => {
         out[index] = arr1[index] || arr2[index] || arr3[index];
 
     }
-    console.log("OR", out)
+    // console.log("OR", out)
     return out;
 }
 
@@ -39,10 +39,10 @@ export const findAllPossibleSlots = (duration, avalibility) => {
                 return slot.includes(element);
             });
             if (contains) {
-                console.log("SLOT", "contains reserved slot");
+                // console.log("SLOT", "contains reserved slot");
             }
             else {
-                console.log("SLOT", "found", slot);
+                // console.log("SLOT", "found", slot);
                 allSlots.push(slot);
             }
 
@@ -70,22 +70,23 @@ export const findSlots = (duration, avalibility) => {
                 return slot.includes(element);
             });
             if (contains) {
-                console.log("SLOT", "contains reserved slot");
+                // console.log("SLOT", "contains reserved slot");
             }
             else {
-                console.log("SLOT", "found", slot);
+                // console.log("SLOT", "found", slot);
                 return slot;
             }
 
         }
 
     }
-    console.log("SLOT", "did not find slot");
+    // console.log("SLOT", "did not find slot");
     return false;
 }
 
-export const generateScheduleForSection = (classes, section) => {
+export const generateScheduleForSection = (classes, s) => {
     const schedules = [];
+    const section = s;
     for (const c of classes) {
         console.log("GENERATE", `at class ${c.course} - ${c.type}`);
         const classrooms = c.classrooms;
@@ -93,29 +94,35 @@ export const generateScheduleForSection = (classes, section) => {
             console.log("GENERATE", `at classroom ${classroom.id}`);
             for (const weekday of [0, 1, 2, 3, 4, 5]) {
                 console.log("GENERATE", `at weekday ${weekday}`);
-                const classroomSlot = classroom.slot[weekday]
                 const teachers = c.teachers;
                 for (const teacher of teachers) {
                     console.log("GENERATE", `at teacher ${teacher.id}`);
                     const teacherSlot = teacher.slot[weekday];
                     const sectionSlot = section.slot[weekday];
+                    const classroomSlot = classroom.slot[weekday];
                     const avalibility = OR(teacherSlot, classroomSlot, sectionSlot);
                     const slots = findSlots(c.duration, avalibility);
                     if (slots) {
                         console.log("GENERATE", `Found slot`);
                         for (const s of slots) {
-                            teacher.slot[weekday][s] = true;
-                            classroom.slot[weekday][s] = true;
-                            section.slot[weekday][s] = true;
+                            teacherSlot[s] = true;
+                            classroomSlot[s] = true;
+                            sectionSlot[s] = true;
                         }
                         schedules.push({
                             name: `${c.course} [${c.type}]`,
                             section: section.id,
+                            sectionName: section.label,
+                            sectionLabel: `${c.year} Semester ${c.semester} Class Schedule for ${section.label}`,
                             label: `${c.year} Semester ${c.semester} Class Schedule for ${section.label}`,
                             year: c.year || "",
                             semester: c.semester || "",
                             teacher: teacher.id,
+                            teacherName: teacher.label,
+                            teacherLabel: `${c.year} Semester ${c.semester} Class Schedule for ${teacher.label}`,
                             classroom: classroom.id,
+                            classroomName: classroom.label,
+                            classroomLabel: `${c.year} Semester ${c.semester} Class Schedule for ${classroom.label}`,
                             slots,
                             weekday
                         })
@@ -136,12 +143,87 @@ export const generateScheduleForSection = (classes, section) => {
     return schedules;
 }
 
+
+export const generateForSection = (classes, section, teacherLookup, classroomLookup) => {
+    const schedules = [];
+    for (const c of classes) {
+        const classrooms = c.classrooms;
+        LOOP1: for (const classroom of classrooms) {
+            for (const weekday of [0, 1, 2, 3, 4, 5]) {
+                const teachers = c.teachers;
+                for (const teacher of teachers) {
+                    const teacherSlot = teacherLookup[teacher].slot[weekday];
+                    const sectionSlot = section.slot[weekday];
+                    const classroomSlot = classroomLookup[classroom].slot[weekday];
+                    const avalibility = OR(teacherSlot, classroomSlot, sectionSlot);
+                    const slots = findSlots(c.duration, avalibility);
+                    if (slots) {
+                       
+                        for (const s of slots) {
+                            teacherSlot[s] = true;
+                            classroomSlot[s] = true;
+                            sectionSlot[s] = true;
+                        }
+                        schedules.push({
+                            name: `${c.course} [${c.type}]`,
+                            section: section.id,
+                            sectionName: section.label,
+                            sectionLabel: `${c.year} Semester ${c.semester} Class Schedule for ${section.label}`,
+                            label: `${c.year} Semester ${c.semester} Class Schedule for ${section.label}`,
+                            year: c.year || "",
+                            semester: c.semester || "",
+                            teacher: teacherLookup[teacher].id,
+                            teacherName: teacherLookup[teacher].label,
+                            teacherLabel: `${c.year} Semester ${c.semester} Class Schedule for ${teacherLookup[teacher].label}`,
+                            classroom: classroomLookup[classroom].id,
+                            classroomName: classroomLookup[classroom].label,
+                            classroomLabel: `${c.year} Semester ${c.semester} Class Schedule for ${classroomLookup[classroom].label}`,
+                            slots,
+                            weekday
+                        })
+                        break LOOP1;
+                    }
+                }
+            }
+        }
+
+    }
+    if (classes.length !== schedules.length) {
+        throw new Error("Could not generate a complete schedule. Make sure there are enough teachers and classrooms for the classes");
+    }
+    return schedules;
+}
+
+
+export const runScheduler = (e) => {
+    return new Promise((resolve, reject) => {
+        try {
+
+            const sections = e.sections;
+            const classes = e.classes;
+            const classroomLookup = e.classroomLookup;
+            const teacherLookup = e.teacherLookup;
+            const schedules = [];
+            for (const s of sections) {
+                const ss = generateForSection(classes, s, teacherLookup, classroomLookup);
+                schedules.push(...ss);
+
+            }
+
+            resolve(schedules);
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+}
+
 export const generateSchedule = (classes, sections) => {
     return new Promise((resolve, reject) => {
         try {
-            let schedules = [];
+            const schedules = [];
             for (const section of sections) {
-                schedules = [...schedules, ...generateScheduleForSection(classes, section)]
+                schedules.push(...generateScheduleForSection(classes, section))
             }
 
             resolve(schedules);
@@ -151,6 +233,8 @@ export const generateSchedule = (classes, sections) => {
         }
     });
 }
+
+
 
 export const createSlotMatrix = () => {
     const matrix = [];

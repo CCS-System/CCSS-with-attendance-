@@ -11,8 +11,8 @@ const Page = ({ id }) => {
     const toRow = (data) => {
         const rows = [];
         if (data && data.length) {
-            data.forEach(({ id, user: { fullname, email }, department: { name: department } }) => {
-                rows.push([fullname, email, department, [{ action: "view", handler: () => { navigate(`/app/admin/teacher/${id}`) } }]]);
+            data.forEach(({ id, user: { fullname, email }, departments }) => {
+                rows.push([fullname, email, departments.reduce((prev, current) => (prev + " " + current.id), ""), [{ action: "view", handler: () => { navigate(`/app/admin/teacher/${id}`) } }]]);
             })
         }
         return rows;

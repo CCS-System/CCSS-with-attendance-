@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './schedule.entity';
 import { ScheduleRepository } from './schedule.repository';
+import { runScheduler } from './scheduler';
 
 export type SchedulePayload = Omit<Schedule, "createdAt" | "updatedAt">
 
@@ -24,27 +25,33 @@ export class ScheduleService {
   ) { }
 
   async findAll(): Promise<Schedule[]> {
-    return await this.scheduleRepository.find({ relations: ["section", "section.department", "teacher", "teacher.department", "classroom", "students", "students.section", "students.section.department"] });
+    return await this.scheduleRepository.find({ relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department"] });
   }
 
   async findAllBySection(id: string): Promise<Schedule[]> {
-    return await this.scheduleRepository.find({ where: { section: { id } }, relations: ["section", "section.department", "teacher", "teacher.department", "classroom", "students", "students.section", "students.section.department"] });
+    return await this.scheduleRepository.find({ where: { section: { id } }, relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department"] });
   }
 
 
 
 
   async findAllByClassroom(id: string): Promise<Schedule[]> {
-    return await this.scheduleRepository.find({ where: { classroom: { id } }, relations: ["section", "section.department", "teacher", "teacher.department", "classroom", "students", "students.section", "students.section.department"] });
+    return await this.scheduleRepository.find({ where: { classroom: { id } }, relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department"] });
   }
 
   async findAllByTeacher(id: string): Promise<Schedule[]> {
-    return await this.scheduleRepository.find({ where: { teacher: { id } }, relations: ["section", "section.department", "teacher", "teacher.department", "classroom", "students", "students.section", "students.section.department"] });
+    return await this.scheduleRepository.find({ where: { teacher: { id } }, relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department"] });
   }
 
   async findById(id: string): Promise<Schedule> {
     return await this.scheduleRepository.findOne({
-      where: { id }, relations: ["section", "section.department", "teacher", "teacher.department", "classroom", "students", "students.section", "students.section.department", "students.attendance"]
+      where: { id }, relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department", "students.attendance", "students.attendance.schedule"]
+    });
+  }
+
+  async findByIdAttendance(id: string): Promise<Schedule> {
+    return await this.scheduleRepository.findOne({
+      where: { attendance: { schedule: { id } } }, relations: ["section", "section.department", "teacher", "teacher.departments", "teacher.user", "classroom", "students", "students.section", "students.section.department", "students.attendance",]
     });
   }
 
@@ -85,6 +92,11 @@ export class ScheduleService {
       }
     }
     return matrix;
+
+  }
+
+  async generate(e: Record<any, any>): Promise<any> {
+    return runScheduler(e);
 
   }
 

@@ -12,7 +12,7 @@ const itemProps = {
 
 };
 
-const Page = ({ department, sections }) => {
+const Page = ({ department, sections, path }) => {
     const navigate = useNavigate();
     return <>
         <Card
@@ -24,7 +24,7 @@ const Page = ({ department, sections }) => {
                     flexGridColumnGap="5px"
                     flexGridRowGap="5px"
                 >
-                    {sections.map(({ id, label }) => (<FlexGridItem key={id} {...itemProps} ><Button startEnhancer={() => <ArrowRight size={24} />} kind="tertiary" onClick={() => { navigate(`/app/admin/section/${id}`) }}>{label}</Button></FlexGridItem>))}
+                    {sections.map(({ id, label }) => (<FlexGridItem key={id} {...itemProps} ><Button startEnhancer={() => <ArrowRight size={24} />} kind="tertiary" onClick={() => { navigate(`/app/admin/${path || "section"}/${id}`) }}>{label}</Button></FlexGridItem>))}
                 </FlexGrid>
             </StyledBody>
 

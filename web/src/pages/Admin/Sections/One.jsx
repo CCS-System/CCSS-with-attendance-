@@ -52,7 +52,7 @@ const Page = () => {
                         <ListItemLabel description="Section Name">{data.name}</ListItemLabel>
                     </ListItem>
                     <ListItem>
-                        <ListItemLabel description="Admission Year">{data.year}</ListItemLabel>
+                        <ListItemLabel description="Batch Year">{data.year}</ListItemLabel>
                     </ListItem>
                 </StyledBody>
                 <StyledAction>

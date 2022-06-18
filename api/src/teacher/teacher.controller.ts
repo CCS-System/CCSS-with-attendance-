@@ -14,8 +14,8 @@ import { LoginResponse } from "src/auth/type/loginResponse"
 export class CreateTeacherDto {
   @ApiProperty({ type: String })
   fullname: string;
-  @ApiProperty({ type: String })
-  department: string;
+  @ApiProperty({ type: Array })
+  departments: string[];
   @ApiProperty({ type: String })
   email: string;
   @ApiProperty({ type: String })
@@ -26,7 +26,7 @@ export class UpdateTeacherDto {
   @ApiProperty({ type: String })
   fullname: string;
   @ApiProperty({ type: String })
-  department: string;
+  departments: string[];
 }
 
 @Controller('/api/teachers')
@@ -109,6 +109,7 @@ export class TeacherController {
       }
       return response;
     } catch (error) {
+      console.log(error)
       throw new NotFoundException(`Cannot find #${id}`);
     }
   }
@@ -126,11 +127,18 @@ export class TeacherController {
         role: UserRole.TEACHER,
         password: hashedPassword,
       });
-      const department = await this.departmentService.findById(registerDto.department);
-      await this.teacherService.create({ ...registerDto, user, department })
+      const departments = [];
+      for (const deptId of registerDto.departments) {
+        const department = await this.departmentService.findById(deptId);
+        if (department) {
+          departments.push(department)
+        }
+      }
+
+      await this.teacherService.create({ ...registerDto, user, departments })
       const { id, role, email, fullname, tokenVersion, profilePicture } = user;
       const tokens = this.authService.assignTokens({ userId: id, role, email, fullname, tokenVersion });
-      return { ...tokens, fullname, email, role, profilePicture, department: department.name, id };
+      return { ...tokens, fullname, email, role, profilePicture, department: departments[0].name, id };
     } catch (error) {
       throw new BadRequestException('Failed to register user.', error);
     }
@@ -142,10 +150,16 @@ export class TeacherController {
     @Body() payload: UpdateTeacherDto,
   ) {
     try {
-      const department = await this.departmentService.findById(payload.department);
+      const departments = [];
+      for (const deptId of payload.departments) {
+        const department = await this.departmentService.findById(deptId);
+        if (department) {
+          departments.push(department)
+        }
+      }
       const user = (await this.teacherService.findById(id)).user;
       user.fullname = payload.fullname;
-      return await this.teacherService.updateById(id, { ...payload, department, user })
+      return await this.teacherService.updateById(id, { ...payload, departments, user })
 
     } catch (error) {
       console.log(error);

@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany
+  OneToMany,
+  ManyToMany,
+  JoinTable
 } from 'typeorm';
 
 import { Section } from 'src/section/section.entity';
@@ -24,7 +26,7 @@ export class Department {
   @OneToMany(() => Section, section => section.department, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   sections?: Section[];
 
-  @OneToMany(() => Teacher, teacher => teacher.department, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToMany(() => Teacher, teacher => teacher.departments, {cascade: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' }) @JoinTable({ name: "department_teacher" })
   teachers?: Teacher[];
 
   @OneToMany(() => Course, course => course.department, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })

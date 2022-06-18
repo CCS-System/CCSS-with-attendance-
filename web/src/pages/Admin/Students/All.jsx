@@ -11,15 +11,15 @@ const Page = () => {
     const toRow = (data) => {
         const rows = [];
         if (data && data.length) {
-            data.forEach(({ id, studentId, fullname, section: { name: section, department: { id: department }, } }) => {
-                rows.push([studentId, fullname, department, section, [{ action: "view", handler: () => { navigate(`/app/admin/student/${id}`) } }]]);
+            data.forEach(({ id, studentId, fullname, year, section: { name: section, department: { id: department }, } }) => {
+                rows.push([studentId, fullname, department, section, year, [{ action: "view", handler: () => { navigate(`/app/admin/student/${id}`) } }]]);
             })
         }
         return rows;
     }
     useEffect(() => { request() }, [])
     return <>
-        <PaginatedTable error={error} isLoading={loading} title="Students" columns={["Student ID", "Full name", "Department", "Section", "Actions"]} data={toRow(data)} actions={[{ name: "Add One", link: "/app/admin/create-student" }, { name: "Add Bulk", link: "/app/admin/create-students" }]} />
+        <PaginatedTable error={error} isLoading={loading} title="Students" columns={["Student ID", "Full name", "Department", "Section", "Year", "Actions"]} data={toRow(data)} actions={[{ name: "Add One", link: "/app/admin/create-student" }, { name: "Add Bulk", link: "/app/admin/create-students" },  { name: "Import", link: "/app/admin/import-students" }]} />
     </>
 
 

@@ -14,6 +14,7 @@ const commonSchema = {
     fullname: Yup.string().required('Full Name is required'),
     department: Yup.array().required('Department is required'),
     section: Yup.array().required('Section is required'),
+    year: Yup.string().required('Year is required'),
 };
 
 const Component = ({
@@ -107,6 +108,17 @@ const Component = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     value={values.fullname}
+                />
+            </FormControl>
+
+            <FormControl label="Year" error={errors.year}>
+                <Input
+                    disabled={isLoading}
+                    id="year"
+                    type="number"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    value={values.year}
                 />
             </FormControl>
 

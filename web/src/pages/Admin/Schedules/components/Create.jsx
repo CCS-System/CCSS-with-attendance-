@@ -48,19 +48,21 @@ const Component = ({ year: initialYear, semester: initialSemester, isOpen, setIs
     }
 
     const getAvaliableSlots = (weekday, duration) => {
-        const classroom = values.classrooms[0].slot[weekday];
-        const teacher = values.sections[0].slot[weekday];
-        const section = values.teachers[0].slot[weekday];
-        const avalibility = OR(classroom, teacher, section);
-        const allSlots = findAllPossibleSlots(duration, avalibility);
-        const options = [];
-        for (const slot of allSlots) {
-            const startDate = new Date(`2018-11-01T${slotLookup[slot[0]]}`);
-            const endDate = new Date(`2018-11-01T${slotLookup[slot[slot.length - 1] + 1]}`);
-            options.push({ id: slot.join(","), label: `${startDate.toLocaleTimeString()} - ${endDate.toLocaleTimeString()}` })
+        if (values.classrooms.length && values.teachers.length && values.sections.length) {
+            const classroom = values.classrooms[0].slot[weekday];
+            const section = values.sections[0].slot[weekday];
+            const teacher = values.teachers[0].slot[weekday];
+            const avalibility = OR(classroom, teacher, section);
+            const allSlots = findAllPossibleSlots(duration, avalibility);
+            const options = [];
+            for (const slot of allSlots) {
+                const startDate = new Date(`2018-11-01T${slotLookup[slot[0]]}`);
+                const endDate = new Date(`2018-11-01T${slotLookup[slot[slot.length - 1] + 1]}`);
+                options.push({ id: slot.join(","), label: `${startDate.toLocaleTimeString()} - ${endDate.toLocaleTimeString()}` })
 
+            }
+            setPossibleSlots(options);
         }
-        setPossibleSlots(options);
     };
 
     const { loading: loading4, request: fetchCourses, } = useAPI(coursesAPI.allByDepartment, { errorMessage: "could not load data", onComplete: (e) => { setCourses(e.map(({ id, name }) => ({ id, label: name }))) } });

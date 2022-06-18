@@ -41,6 +41,11 @@ export const menu = [
         icon: <FaUsers style={{ marginRight: '0.5rem' }} />,
         to: "/app/admin/students"
     },
+    {
+        title: 'Create Admin Account',
+        icon: <FaUsers style={{ marginRight: '0.5rem' }} />,
+        to: "/app/admin/new-admin"
+    },
 ]
 
 

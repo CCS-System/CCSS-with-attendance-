@@ -13,18 +13,28 @@ export class TeacherService {
   ) { }
 
   async findAll(): Promise<Teacher[]> {
-    return await this.teacherRepository.find({ relations: ["department", "user"] });
+    return await this.teacherRepository.find({ relations: ["departments", "user"] });
   }
 
   async findAllByDepartment(id: string): Promise<Teacher[]> {
-    return await this.teacherRepository.find({ where: { department: { id } }, relations: ["department", "user"] });
+    const teachers = await this.teacherRepository.find({ relations: ["departments", "user"] });
+    return teachers.filter(({ departments }) => {
+      let found = false;
+      for (const department of departments) {
+        if (department.id === id) {
+          found = true;
+          break;
+        }
+      }
+      return found;
+    });
   }
   async findOneByUserId(id: string): Promise<Teacher> {
-    return await this.teacherRepository.findOne({ where: { user: { id } }, relations: ["department", "user"] });
+    return await this.teacherRepository.findOne({ where: { user: { id } }, relations: ["departments", "user"] });
   }
 
   async findById(id: string): Promise<Teacher> {
-    return await this.teacherRepository.findOne({ where: { id }, relations: ["department", "user"] });
+    return await this.teacherRepository.findOne({ where: { id }, relations: ["departments", "user"] });
   }
 
   async create(teacher: TeacherPayload): Promise<Teacher> {

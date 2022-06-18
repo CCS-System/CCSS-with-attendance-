@@ -7,7 +7,8 @@ import {
   OneToOne,
   JoinColumn,
   ManyToOne,
-  OneToMany
+  OneToMany,
+  ManyToMany
 } from 'typeorm';
 
 import { User } from 'src/user/user.entity';
@@ -19,8 +20,8 @@ export class Teacher {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @ManyToOne(() => Department, department => department.sections, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  department: Department;
+  @ManyToMany(() => Department, department => department.teachers, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  departments: Department[];
 
   @OneToOne(() => User, { eager: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' }) @JoinColumn()
   user: User;

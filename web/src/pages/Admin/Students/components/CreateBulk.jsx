@@ -20,6 +20,7 @@ const commonSchema = {
     fullname: Yup.string().required('Full Name is required'),
     department: Yup.array().required('Department is required'),
     section: Yup.array().required('Section is required'),
+    year: Yup.string().required('Year is required'),
 };
 
 const Component = ({
@@ -117,6 +118,7 @@ const Component = ({
                 </FlexGridItem>
                 <FlexGridItem>
 
+
                     <FormControl label="Full Name" error={errors.fullname}>
                         <Input
                             disabled={isLoading}
@@ -125,6 +127,18 @@ const Component = ({
                             onChange={handleChange}
                             onBlur={handleBlur}
                             value={values.fullname}
+                        />
+                    </FormControl>
+                </FlexGridItem>
+                <FlexGridItem>
+                    <FormControl label="Year" error={errors.year}>
+                        <Input
+                            disabled={isLoading}
+                            id="year"
+                            type="number"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            value={values.year}
                         />
                     </FormControl>
                 </FlexGridItem>
@@ -148,11 +162,11 @@ const Component = ({
                 Add
             </Button>
             <ListHeading
-            heading="Students"
-            maxLines={1}
-        />
+                heading="Students"
+                maxLines={1}
+            />
             <List
-                items={students.map(({ studentId, fullname }) => (`${fullname} [${studentId}]`))}
+                items={students.map(({ studentId, fullname, year }) => (`${fullname} [${studentId}] - ${year}`))}
                 removable
                 onChange={({ oldIndex, newIndex }) =>
                     setStudents(

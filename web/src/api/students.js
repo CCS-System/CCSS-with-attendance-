@@ -7,5 +7,6 @@ export default {
     delete: (id) => client.delete(`students/${id}`),
     create: (data) => client.post("students", data),
     createBulk: (data) => client.post("students/bulk", data),
+    import: (data) => client.post("students/import", data),
     update: (id, data) => client.put(`students/${id}`, data),
 }

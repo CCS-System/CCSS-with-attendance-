@@ -6,7 +6,8 @@ import { DatePicker } from 'baseui/datepicker';
 import { Tag } from "baseui/tag";
 import { Button } from "baseui/button";
 import useAPI from "../../../../hooks/useAPI";
-import theAPI from "../../../../api/schedules"
+import theAPI from "../../../../api/schedules";
+import studentsAPI from "../../../../api/students"
 import attendanceAPI from "../../../../api/attendance";
 import { Checkbox } from 'baseui/checkbox';
 import { ListHeading } from "baseui/list"
@@ -17,12 +18,13 @@ import {
 
 const Page = ({ id }) => {
     const navigate = useNavigate();
-    const { loading: l, request, error, } = useAPI(theAPI.getById, { onComplete: ({ students }) => { setData(students.map((e) => ({ ...e, selected: false }))) } });
+    const { loading: l, request, error, } = useAPI(theAPI.getById, { onComplete: ({ section: { id } }) => { getStudents(id); } });
+    const { loading: l2, request: getStudents, } = useAPI(studentsAPI.allBySection, {errorMessage: "Could not fetch students!", onComplete: (students) => { setData(students.map((e) => ({ ...e, selected: false }))) } });
     const { loading: l1, request: CreateAttendance, } = useAPI(attendanceAPI.create, { successMessage: "Completed!", errorMessage: "Could not take attendance!", onComplete: () => { navigate(-1) } });
     useEffect(() => {
         request(id);
     }, [])
-    const loading = l1 || l;
+    const loading = l1 || l || l2;
     const handleSubmit = () => {
         const payload = { schedule: id, date, students: data.map(({ id, selected }) => ({ id, absent: !selected })) }
         CreateAttendance(payload);
@@ -92,7 +94,7 @@ const Page = ({ id }) => {
                     const attendance = row.attendance; const absentDays = attendance.filter(({ absent }) => absent).length;
                     const presentDays = attendance.filter(({ absent }) => !absent).length;
                     const percentage = Math.round((presentDays / (absentDays + presentDays)) * 100);
-                    return <Tag closeable={false} kind={percentage >= 75 ? "positive" : "negative"}>{percentage} %</Tag>
+                    return <Tag closeable={false} kind={percentage >= 75 ? "positive" : "negative"}>{isNaN(percentage) ? "0 %" : `${percentage} %`}</Tag>
                 }}
             </TableBuilderColumn>
             <TableBuilderColumn header="ID">

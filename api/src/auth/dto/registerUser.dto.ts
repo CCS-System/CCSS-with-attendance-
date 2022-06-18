@@ -12,6 +12,6 @@ export class RegisterUserDto {
 export type RegisterDto = Omit<RegisterUserDto, "role">;
 
 export class RegisterTeacherDto extends RegisterUserDto {
-  @ApiProperty({ type: String })
-  department: string;
+  @ApiProperty({ type: Array })
+  departments: string[];
 }

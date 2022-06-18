@@ -49,6 +49,7 @@ import AdminStudentsOne from "./Admin/Students/One";
 import AdminStudentsUpdate from "./Admin/Students/Update";
 import AdminStudentsCreate from "./Admin/Students/Create";
 import AdminStudentsCreateBulk from "./Admin/Students/CreateBulk";
+import AdminStudentsImport from "./Admin/Students/Import";
 
 
 import AdminAttendanceAll from "./Admin/Attendance/All";
@@ -60,6 +61,9 @@ import TeacherDashboard from "./Teacher/Dashboard";
 import TeacherScheduleOne from "./Teacher/One";
 import TeacherAttendance from "./Teacher/Attendances";
 import TeacherAttendanceOne from "./Teacher/AttendanceOne";
+
+import AdminCreateAdmin from "./Admin/CreateAdmin";
+
 
 import { UserAuthContext } from "../hooks/useAuth";
 const App = () => {
@@ -113,10 +117,12 @@ const App = () => {
                             <Route path="update-student/:id" element={<AdminStudentsUpdate />} />
                             <Route path="create-student" element={<AdminStudentsCreate />} />
                             <Route path="create-students" element={<AdminStudentsCreateBulk />} />
+                            <Route path="import-students" element={<AdminStudentsImport />} />
 
                             <Route path="attendances/:id" element={<AdminAttendanceAll />} />
                             <Route path="attendance/:id" element={<AdminAttendanceOne />} />
                             <Route path="create-attendance/:id" element={<AdminAttendanceCreate />} />
+                            <Route path="new-admin" element={<AdminCreateAdmin />} />
 
 
                         </Route>

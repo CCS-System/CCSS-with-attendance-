@@ -82,11 +82,19 @@ export class AuthController {
         role: UserRole.TEACHER,
         password: hashedPassword,
       });
-      const department = await this.departmentService.findById(registerDto.department);
-      await this.teacherService.create({ ...registerDto, user, department })
+      const departments = [];
+      for (const deptId of registerDto.departments) {
+        const department = await this.departmentService.findById(deptId);
+        if (department) {
+          departments.push(department)
+        }
+
+      }
+
+      await this.teacherService.create({ ...registerDto, user, departments })
       const { id, role, email, fullname, tokenVersion, profilePicture } = user;
       const tokens = this.authService.assignTokens({ userId: id, role, email, fullname, tokenVersion });
-      return { ...tokens, fullname, email, role, profilePicture, department: department.name, id: id || "" };
+      return { ...tokens, fullname, email, role, profilePicture, department: departments[0].name, id: id || "" };
     } catch (error) {
       throw new BadRequestException('Failed to register user.');
     }
@@ -110,12 +118,11 @@ export class AuthController {
     }
 
     const { id, role, profilePicture, tokenVersion, email, fullname } = existingUser;
-    let department = null;
+    let department = "";
     let teacherId = id;
     switch (role) {
       case "TEACHER":
-        const { id: id1, department: { id: department1 } } = await this.teacherService.findOneByUserId(id);
-        department = department1;
+        const { id:id1 } = await this.teacherService.findOneByUserId(id);
         teacherId = id1;
         break;
     }

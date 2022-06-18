@@ -17,7 +17,7 @@ export class AttendanceService {
   }
 
   async findAllBySchedule(id: string): Promise<Attendance[]> {
-    return await this.attendanceRepository.find({ where: { schedule: { id } }, relations: ["student", "student.section", "student.section.department"] });
+    return await this.attendanceRepository.find({ where: { schedule: { id } }, relations: ["schedule", "student", "student.section", "student.section.department"] });
   }
 
   async findAllByStudent(studentId: string): Promise<Attendance[]> {

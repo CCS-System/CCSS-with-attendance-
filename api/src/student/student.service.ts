@@ -13,28 +13,28 @@ export class StudentService {
   ) { }
 
   async findAll(): Promise<Student[]> {
-    return await this.studentRepository.find({ relations: ["attendance", "section", "section.department"] });
+    return await this.studentRepository.find({ relations: ["attendance", "section", "section.department","attendance.schedule"] });
   }
 
   async findOneByStudentId(studentId: string): Promise<Student> {
     return await this.studentRepository.findOne({
-      where: { studentId }, relations: ["attendance", "section", "section.department"]
+      where: { studentId }, relations: ["attendance", "section", "section.department","attendance.schedule"]
     });
   }
 
   async findAllByDepartment(id: string): Promise<Student[]> {
-    return await this.studentRepository.find({ where: { section: { department: { id } } }, relations: ["attendance", "section", "section.department"] });
+    return await this.studentRepository.find({ where: { section: { department: { id } } }, relations: ["attendance", "section", "section.department","attendance.schedule"] });
   }
 
 
   async findAllBySection(id: string): Promise<Student[]> {
-    return await this.studentRepository.find({ where: { section: { id } }, relations: ["attendance", "section", "section.department"] });
+    return await this.studentRepository.find({ where: { section: { id } }, relations: ["attendance", "section", "section.department","attendance.schedule"] });
   }
 
 
   async findById(id: string): Promise<Student> {
     return await this.studentRepository.findOne({
-      where: { id }, relations: ["attendance", "section", "section.department"]
+      where: { id }, relations: ["attendance", "section", "section.department","attendance.schedule"]
     });
   }
 

@@ -24,6 +24,8 @@ export class Student {
 
   @Column({})
   fullname: string;
+  @Column({ nullable: true })
+  year: string;
 
   @ManyToOne(() => Section, section => section.students, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   section: Section;

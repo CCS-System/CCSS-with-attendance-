@@ -28,15 +28,30 @@ const commonSchema = {
     semester: Yup.string().required('Semester is required'),
 };
 
+const ordinalSuffix = (i) => {
+    const j = i % 10;
+    const k = i % 100;
+    if (j == 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j == 2 && k != 12) {
+        return i + "nd";
+    }
+    if (j == 3 && k != 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
 const Component = ({ isLoading: l, onSubmit }) => {
     const { loading, request: fetchDepartments, } = useAPI(departmentsAPI.all, { onComplete: (e) => { setDepartments(e.map(({ id, name }) => ({ id, label: name }))) } });
     const { loading: loading1, request: fetchSections } = useAPI(sectionsAPI.allByDepartmentSlot, { onComplete: (e) => { sectionsFilter(e) } });
     const { loading: loading2, request: fetchClassrooms } = useAPI(classroomsAPI.allByDepartmentSlot, { onComplete: (e) => { classroomsFilter(e) } });
     const isLoading = l || loading || loading1 || loading2;
     const sectionsFilter = (e) => {
-        const list = e.map(({ id, name, year, slot }) => ({ id, label: `${name} [${year} batch]`, slot }));
+        const list = e.map(({ id, name, year, slot }) => ({ id, label: `${name} [${ordinalSuffix(year)} year]`, slot }));
         setSections(list);
-        setFieldValue("sections", list);
+        // setFieldValue("sections", list);
     }
     const classroomsFilter = (e) => {
         const list = e.map(({ id, name, type, slot }) => ({ id, label: `${name} [${type}]`, type, slot }));
@@ -81,11 +96,23 @@ const Component = ({ isLoading: l, onSubmit }) => {
             if (onSubmit) {
                 const { department, classes, classrooms, year, semester } = payload;
                 const mappedClasses = classes.map(mapToCardProps);
-                const classesWithClassroom = mappedClasses.map((prop) => {
+                const teacherLookup = {};
+                mappedClasses.forEach(({ teachers: ts }) => {
+                    for (const t of ts) {
+                        teacherLookup[t.id] = t;
+                    }
+                });
+                const classroomLookup = {};
+                classrooms.forEach((c) => {
+                    classroomLookup[c.id] = c;
+                });
+                const classesWithIds = mappedClasses.map((prop) => {
                     const filteredClassrooms = classrooms.filter(({ type }) => type.toLowerCase() === prop.type.toLowerCase());
-                    return { ...prop, classrooms: filteredClassrooms, year, semester };
+                    const teacherIds = prop.teachers.map(({ id }) => id);
+                    const classroomIds = filteredClassrooms.map(({ id }) => id);
+                    return { ...prop, classrooms: classroomIds, teachers: teacherIds, year, semester };
                 })
-                onSubmit({ ...payload, department: department[0].id, classes: classesWithClassroom });
+                onSubmit({ ...payload, department: department[0].id, classes: classesWithIds, teacherLookup, classroomLookup });
             }
         },
     });
@@ -100,7 +127,7 @@ const Component = ({ isLoading: l, onSubmit }) => {
                 justifyItems="space-between"
             >
                 <FlexGridItem>
-                    <FormControl label="Year" error={errors.year}>
+                    <FormControl label="Academic Year" error={errors.year}>
                         <Input
                             disabled={isLoading}
                             id="year"
@@ -112,7 +139,7 @@ const Component = ({ isLoading: l, onSubmit }) => {
                     </FormControl>
                 </FlexGridItem>
                 <FlexGridItem>
-                    <FormControl label="Semester" error={errors.semester}>
+                    <FormControl label="Academic Semester" error={errors.semester}>
                         <Input
                             disabled={isLoading}
                             id="semester"

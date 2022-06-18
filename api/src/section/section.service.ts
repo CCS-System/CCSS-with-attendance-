@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository, } from '@nestjs/typeorm';
+import { Like } from "typeorm";
 import { Section } from './section.entity';
 import { SectionRepository } from './section.repository';
+import { DepartmentService } from "src/department/department.service";
 
 export type SectionPayload = Omit<Section, "createdAt" | "updatedAt">
 
@@ -10,6 +12,8 @@ export class SectionService {
   constructor(
     @InjectRepository(SectionRepository)
     private readonly sectionRepository: SectionRepository,
+
+    private readonly departmentService: DepartmentService,
   ) { }
 
   async findAll(): Promise<Section[]> {
@@ -24,6 +28,19 @@ export class SectionService {
     return await this.sectionRepository.findOne({
       where: { id }, relations: ["department"]
     });
+  }
+
+  async findLikeOrCreate(department: string, name: string): Promise<Section> {
+    const result = await this.sectionRepository.findOne({
+      where: { department: { id: department }, name: Like(`%${name}%`) }, relations: ["department"]
+    });
+    if (result) {
+      return result;
+    }
+    else {
+      const d = await this.departmentService.findById(department);
+      return await this.create({ name, department: d, year: "2022" })
+    }
   }
 
   async create(section: SectionPayload): Promise<Section> {
